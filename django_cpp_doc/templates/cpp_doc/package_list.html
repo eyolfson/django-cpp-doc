@@ -1,0 +1,16 @@
+{% extends 'cpp_doc/base_site.html' %}
+
+{% block content %}
+<h1>{{ package_name }}</h1>
+
+{% if package_list %}
+<div class="list-group">
+  {% for package in package_list %}
+  <a href="{% url 'cpp_doc:package_detail' package_name.slug package.version %}" class="list-group-item list-group-item-action">{{ package.version }}</a>
+  {% endfor %}
+</div>
+{% else %}
+<p>No packages are available.</p>
+{% endif %}
+
+{% endblock %}

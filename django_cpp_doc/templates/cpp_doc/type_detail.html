@@ -1,0 +1,53 @@
+{% extends 'cpp_doc/base_site.html' %}
+
+{% block breadcrumbs %}
+<nav class="breadcrumb">
+  <a class="breadcrumb-item" href="{% url 'cpp_doc:package_detail' package.slug %}">{{ package }}</a>
+  {% if root_namespace.cpp_type == type %}
+  <span class="breadcrumb-item active">Types</span>
+  {% else %}
+  <a class="breadcrumb-item" href="{% url 'cpp_doc:type_root' package.slug %}">Types</a>
+  {% for namespace in namespace_list %}
+  <a class="breadcrumb-item" href="{% url 'cpp_doc:type_detail' package.slug namespace.cpp_type.pk %}">{{ namespace.cpp_type.get_name }}</a>
+  {% endfor %}
+  <span class="breadcrumb-item active" >{{ type.get_name }}</span>
+  {% endif %}
+</nav>
+{% endblock %}
+
+{% block content %}
+
+{% if type.namespace %}
+  {% if namespace_contents %}
+<div class="list-group">
+    {% for child in namespace_contents %}
+      {% if child.builtin %}
+      {% else %}
+  <a href="{% url 'cpp_doc:type_detail' package.slug child.pk %}" class="list-group-item list-group-item-action{% if child.namespace %} list-group-item-info{% endif %}">{{ child.get_name }}</a>
+      {% endif %}
+    {% endfor %}
+</div>
+  {% else %}
+<p>Empty namespace.</p>
+  {% endif %}
+{% elif type.record_decl %}
+<h2>Record: {{ type.get_name }}</h2>
+  {% if type.record_decl.methods.count %}
+<h3>Methods</h3>
+    {% for method in type.record_decl.methods.all %}
+<p><tt>{{ method.ret.get_name}} {{ method.name }}({% for param_type in method.get_param_types %}{% if not forloop.first %}, {% endif %}{{ param_type.get_name }}{% endfor %}){% if method.is_const %} const{% endif %}</tt>{% if method.immutability_check %} <span class="badge {% if method.immutability_check.result == 1 %}badge-success{% elif method.immutability_check.result == 2 %}badge-warning{% elif method.immutability_check.result == 3 %}badge-danger{% else %}badge-default{% endif %}">{{ method.immutability_check.get_result_display }}</span>{% endif %}</p>
+    {% endfor %}
+  {% endif %}
+
+  {% if type.record.fields.count %}
+<h3>Fields</h3>
+
+    {% for field in type.record.fields.all %}
+<p><tt>{{ field.qual_type.get_name}} {{ field.name }}</tt></p>
+    {% endfor %}
+  {% endif %}
+{% else %}
+<p>Unknown type.</p>
+{% endif %}
+
+{% endblock %}

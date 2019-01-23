@@ -1,0 +1,140 @@
+{% extends 'cpp_doc/base_site.html' %}
+
+{% block breadcrumbs %}
+<nav class="breadcrumb">
+  <a class="breadcrumb-item" href="{% url 'cpp_doc:package_list' package_name.slug %}">{{ package_name }}</a>
+  <a class="breadcrumb-item" href="{% url 'cpp_doc:package_detail' package_name.slug package.version %}">{{ package.version }}</a>
+  {% if root_decl == decl %}
+  <span class="breadcrumb-item active">Declarations</span>
+  {% else %}
+  <a class="breadcrumb-item" href="{% url 'cpp_doc:decl_root' package_name.slug package.version %}">Declarations</a>
+  {% for decl_context in decl_context_list %}
+  <a class="breadcrumb-item" href="{% url 'cpp_doc:decl_detail' package_name.slug package.version decl_context.pk %}">{{ decl_context.get_name }}</a>
+  {% endfor %}
+  <span class="breadcrumb-item active" >{{ decl.get_name }}</span>
+  {% endif %}
+</nav>
+{% endblock %}
+
+{% block content %}
+
+<h1>{{ decl }}</h1>
+
+{% if decl.namespaces.count %}
+<h2>Namespaces</h2>
+
+<div class="list-group">
+  {% for child in decl.namespaces %}
+  <a href="{% url 'cpp_doc:decl_detail' package_name.slug package.version child.pk %}" class="list-group-item list-group-item-action list-group-item-info">{{ child.get_name }}</a>
+  {% endfor %}
+</div>
+{% endif %}
+
+{% if decl.records.count %}
+<h2>Records</h2>
+
+<ul class="list-group">
+  {% for child in decl.records %}
+  <li class="list-group-item justify-content-between">
+    <a href="{% url 'cpp_doc:decl_detail' package_name.slug package.version child.pk %}">{{ child.get_name }}</a>
+    {% if child.record.counts %}
+    <span>
+      <span class="badge badge-default">{{ child.record.counts.num_methods }}</span>
+      <span class="badge badge-primary">{{ child.record.counts.num_const_methods }}</span>
+      <span class="badge badge-success">{{ child.record.counts.num_const_no_easy }}</span>
+      <span class="badge badge-warning">{{ child.record.counts.num_const_no_odd }}</span>
+      <span class="badge badge-danger">{{ child.record.counts.num_const_maybe }}</span>
+    </span>
+    {% endif %}
+  </li>
+  {% endfor %}
+</ul>
+{% endif %}
+
+{% if decl.record %}
+  {% with record=decl.record %}
+  {% if record.public_view_methods.count %}
+
+<h2>Methods</h2>
+
+<ul class="list-group">
+    {% for view in record.public_view_methods.all %}
+      {% with method=view.decl.method %}
+  <li class="list-group-item justify-content-between">
+    <tt>{{ method.decl.path }}</tt>
+    <span>
+      {% if method.decl.presumed_loc and method.decl.presumed_loc.get_github_url %}
+      <a href="{{ method.decl.presumed_loc.get_github_url }}" class="badge badge-default">Location</a>
+      {% endif %}
+      {% if method.is_const %}
+      <span class="badge badge-primary"><tt>const</tt></span>
+      {% endif %}
+      {% if method.stub %}
+      <span class="badge badge-default">Stub</span>
+      {% endif %}
+      {% if method.immutability_check %}
+        {% if method.immutability_check.mutate_result == 1 %}
+          {% if method.immutable_check.return_result == 2 %}
+      <span class="badge badge-warning">Odd</span>
+          {% else %}
+      <span class="badge badge-success">Simple</span>
+          {% endif %}
+        {% elif method.immutability_check.mutate_result == 2 %}
+      <span class="badge badge-danger">Complex</span>
+        {% endif %}
+
+        {% if method.immutability_check.mutate_result == 1 %}
+      <span class="badge badge-info">No mutate</span>
+        {% elif method.immutability_check.mutate_result == 2 %}
+      <span class="badge badge-info">May mutate</span>
+        {% endif %}
+        {% if method.immutability_check.return_result == 1 %}
+      <span class="badge badge-info">Return noop</span>
+        {% elif method.immutability_check.return_result == 2 %}
+      <span class="badge badge-info">Return field (transitive)</span>
+        {% elif method.immutability_check.return_result == 3 %}
+      <span class="badge badge-info">Return field (non-transitive)</span>
+        {% elif method.immutability_check.return_result == 4 %}
+      <span class="badge badge-info">Return other</span>
+        {% endif %}
+      {% endif %}
+    </span>
+  </li>
+      {% endwith %}
+    {% endfor %}
+</ul>
+  {% endif %}
+
+  {% if record.public_view_fields.count %}
+<h2>Fields</h2>
+
+<ul class="list-group">
+    {% for view in record.public_view_fields.all %}
+      {% with field=view.decl.field %}
+  <li class="list-group-item justify-content-between">
+    <tt>{{ field.decl.path }}</tt>
+    <span>
+      {% if field.decl.presumed_loc and field.decl.presumed_loc.get_github_url %}
+      <a href="{{ field.decl.presumed_loc.get_github_url }}" class="badge badge-default">Location</a>
+      {% endif %}
+      {% if field.immutability_check %}
+        {% if field.immutability_check.is_transitive %}
+      <span class="badge badge-success">Transitive</span>
+        {% endif %}
+        {% if field.immutability_check.is_explicit %}
+      <span class="badge badge-warning">Explicit</span>
+        {% endif %}
+      {% endif %}
+      {% if field.is_mutable %}
+      <span class="badge badge-danger"><tt>mutable</tt></span>
+      {% endif %}
+    </span>
+  </li>
+      {% endwith %}
+    {% endfor %}
+</ul>
+  {% endif %}
+  {% endwith %}
+{% endif %}
+
+{% endblock %}

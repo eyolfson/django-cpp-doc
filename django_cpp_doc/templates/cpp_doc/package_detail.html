@@ -1,0 +1,18 @@
+{% extends 'cpp_doc/base_site.html' %}
+
+{% block breadcrumbs %}
+<nav class="breadcrumb">
+  <a class="breadcrumb-item" href="{% url 'cpp_doc:package_list' package_name.slug %}">{{ package_name }}</a>
+  <span class="breadcrumb-item active">{{ package.version }}</span>
+</nav>
+{% endblock %}
+
+{% block content %}
+<h1>{{ package }}</h1>
+
+<p>
+  <a href="{% url 'cpp_doc:file_root' package_name.slug package.version %}">Files</a>
+  <br />
+  <a href="{% url 'cpp_doc:decl_root' package_name.slug package.version %}">Declarations</a>
+</p>
+{% endblock %}

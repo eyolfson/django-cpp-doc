@@ -1,0 +1,29 @@
+{% extends 'cpp_doc/base_site.html' %}
+
+{% block breadcrumbs %}
+<nav class="breadcrumb">
+  <a class="breadcrumb-item" href="{% url 'cpp_doc:package_list' package_name.slug %}">{{ package_name }}</a>
+  <a class="breadcrumb-item" href="{% url 'cpp_doc:package_detail' package_name.slug package.version %}">{{ package.version }}</a>
+  {% if root_fd == fd %}
+  <span class="breadcrumb-item active">Files</span>
+  {% else %}
+  <a class="breadcrumb-item" href="{% url 'cpp_doc:file_root' package_name.slug package.version %}">Files</a>
+  {% for directory in directory_list %}
+  <a class="breadcrumb-item" href="{% url 'cpp_doc:file_detail' package_name.slug package.version directory.pk %}">{{ directory.name }}</a>
+  {% endfor %}
+  <span class="breadcrumb-item active" >{{ fd.name }}</span>
+  {% endif %}
+</nav>
+{% endblock %}
+
+{% block content %}
+<h1>{{ fd }}</h1>
+
+{% if fd.children.count %}
+<div class="list-group">
+  {% for child in fd.children.all %}
+  <a href="{% url 'cpp_doc:file_detail' package_name.slug package.version child.pk %}" class="list-group-item list-group-item-action{% if child.directory %} list-group-item-info{% endif %}">{{ child.name }}</a>
+  {% endfor %}
+</div>
+{% endif %}
+{% endblock %}
