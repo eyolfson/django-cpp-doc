@@ -82,8 +82,8 @@ class CompileCommand(models.Model):
                              related_name='compile_command_files')
     output = models.ForeignKey(FileDescriptor,
                                on_delete=models.CASCADE,
-                               null=False,
-                               blank=False,
+                               null=True,
+                               blank=True,
                                related_name='compile_command_outputs')
     command_line = ArrayField(
         models.CharField(max_length=256),
